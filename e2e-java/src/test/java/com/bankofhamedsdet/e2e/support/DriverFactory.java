@@ -4,6 +4,10 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.logging.LogType;
+import org.openqa.selenium.logging.LoggingPreferences;
+
+import java.util.logging.Level;
 
 /**
  * One WebDriver instance per thread so the suite can later be switched to
@@ -31,6 +35,12 @@ public final class DriverFactory {
         // permission issues and /dev/shm exhaustion under load.
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
+
+        // Capture browser console output so a JS runtime error can be
+        // surfaced on failure instead of just "element never appeared".
+        LoggingPreferences logPrefs = new LoggingPreferences();
+        logPrefs.enable(LogType.BROWSER, Level.ALL);
+        options.setCapability("goog:loggingPrefs", logPrefs);
 
         DRIVER.set(new ChromeDriver(options));
     }
