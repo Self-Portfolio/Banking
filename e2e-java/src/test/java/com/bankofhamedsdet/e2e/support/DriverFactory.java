@@ -27,6 +27,10 @@ public final class DriverFactory {
         options.addArguments("--window-size=1440,900");
         options.addArguments("--disable-gpu");
         options.addArguments("--remote-allow-origins=*");
+        // Standard hardening for shared/CI runners: avoids sandbox
+        // permission issues and /dev/shm exhaustion under load.
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
 
         DRIVER.set(new ChromeDriver(options));
     }
