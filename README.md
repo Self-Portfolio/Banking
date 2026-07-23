@@ -120,19 +120,33 @@ banking-test-app/
 └── .github/workflows/ci.yml
 ```
 
+## Current e2e coverage
+
+Both `e2e/` (Playwright) and `e2e-java/` (Selenium/Cucumber/TestNG) currently
+cover the same four areas, scenario-for-scenario:
+
+- **Login:** valid/invalid credentials, unauthenticated redirect, logout.
+- **Transfer:** successful transfer, insufficient funds, unknown destination
+  account, the seeded zero-amount validation-mismatch bug.
+- **Bill pay:** successful payment, insufficient funds, adding a payee,
+  removing a payee.
+- **Account search/pagination:** paging through transaction history,
+  prev/next disabled states, the seeded case-sensitive search bug, the
+  seeded date-range boundary bug.
+
 ## Suggested test cases to write yourself
 
-This ships with a small starter suite, not full coverage — the point is for
-you to build it out. Some ideas:
+This is still a starter suite, not full coverage — the point is for you to
+build it out further. Some ideas:
 
-- **Auth:** empty fields, wrong password, expired/tampered token, duplicate
-  registration, password length boundary (7 vs 8 chars).
-- **Accounts/transactions:** pagination boundaries, search case sensitivity
-  (see `ANSWER_KEY.md`), date-range filtering, sort order, empty states.
-- **Transfers:** insufficient funds, transfer to self, transfer to another
-  user's account, decimal rounding (e.g. `10.005`), negative/zero amounts.
-- **Bill pay:** adding/removing payees, paying with no payees, duplicate
-  payee names.
+- **Auth:** expired/tampered token, duplicate registration, password length
+  boundary (7 vs 8 chars).
+- **Accounts/transactions:** sort order, empty states, exact pagination
+  off-by-one boundary (Bug 1 — needs an account with an exact multiple of
+  the page size).
+- **Transfers:** transfer to self, transfer to another user's account,
+  decimal rounding (e.g. `10.005`).
+- **Bill pay:** paying with no payees, duplicate payee names.
 - **API-level:** run the same scenarios directly against the endpoints in
   `openapi.yaml` without going through the UI at all — status codes, response
   shapes, auth header handling.
