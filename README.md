@@ -14,12 +14,16 @@ any real money or accounts.
   dashboard, transaction history with search/filter/pagination, fund
   transfers, bill pay. Every interactive element has a stable `data-testid`
   attribute for reliable automation selectors.
-- **e2e/** — Playwright starter test suite (login + transfer flows) you can
-  build on to "prepare test automation cases."
+- **e2e/** — Playwright (JavaScript) starter test suite (login + transfer
+  flows) you can build on to "prepare test automation cases."
+- **e2e-java/** — the same login + transfer scenarios again, written with
+  Java + Selenium WebDriver + Cucumber (Gherkin) + TestNG, using a Page
+  Object Model. See `e2e-java/README.md`.
 - **openapi.yaml** — API spec you can import into Postman/Insomnia or feed to
   a contract-testing tool.
 - **.github/workflows/ci.yml** — GitHub Actions pipeline: backend tests →
-  frontend build → Playwright e2e, on every push/PR.
+  frontend build → Playwright e2e + Java/Selenium/Cucumber/TestNG e2e, on
+  every push/PR.
 - **ANSWER_KEY.md** — a handful of intentionally seeded bugs (pagination,
   case sensitivity, stale UI state, validation mismatches, etc.) for your
   tests to discover. Don't peek until you've tried to find them yourself.
@@ -72,12 +76,22 @@ the database before each test file so results are repeatable.
 
 View the HTML report after a run: `cd e2e && npm run report`
 
+**Java / Selenium / Cucumber / TestNG end-to-end tests:**
+```bash
+cd e2e-java && mvn test
+```
+Requires JDK 17+, Maven, and Chrome installed, and expects the backend and
+frontend dev servers to already be running (unlike the Playwright suite,
+this one doesn't start them for you). See `e2e-java/README.md` for details,
+including how to run headless.
+
 ## CI/CD
 
 `.github/workflows/ci.yml` runs on every push/PR to any branch:
 1. Backend Jest tests
 2. Frontend production build
 3. Playwright e2e suite (with the HTML report uploaded as an artifact)
+4. Java/Selenium/Cucumber/TestNG e2e suite (with the Cucumber report uploaded as an artifact)
 
 To use it, push this folder to a GitHub repository — the workflow needs no
 secrets or external services.
@@ -99,7 +113,8 @@ banking-test-app/
 │       ├── pages/      Login, Register, Dashboard, AccountDetails, Transfer, BillPay, Profile
 │       ├── context/     AuthContext, AccountsContext
 │       └── api.js       fetch wrapper
-├── e2e/                 Playwright starter suite
+├── e2e/                 Playwright (JS) starter suite
+├── e2e-java/            Selenium + Cucumber + TestNG starter suite (Java)
 ├── openapi.yaml
 ├── ANSWER_KEY.md
 └── .github/workflows/ci.yml
