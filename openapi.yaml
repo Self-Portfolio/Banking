@@ -1,0 +1,205 @@
+openapi: 3.0.3
+info:
+  title: Bank of Hamed_SDET API
+  description: Mock banking REST API for practicing API test automation (Postman/Newman, RestAssured, requests+pytest, supertest, etc).
+  version: 1.0.0
+servers:
+  - url: http://localhost:4000/api
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+
+  /test/reset:
+    post:
+      summary: Reset the datastore back to seeded demo data (test automation convenience only)
+      responses:
+        '200':
+          description: Reset complete
+
+  /auth/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, email, password, fullName]
+              properties:
+                username: { type: string }
+                email: { type: string }
+                password: { type: string, minLength: 8 }
+                fullName: { type: string }
+      responses:
+        '201': { description: User created, returns token }
+        '400': { description: Validation error }
+        '409': { description: Username or email already registered }
+
+  /auth/login:
+    post:
+      summary: Log in with username/password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string }
+                password: { type: string }
+      responses:
+        '200': { description: Returns JWT token and user profile }
+        '400': { description: Missing fields }
+        '401': { description: Invalid credentials }
+
+  /auth/me:
+    get:
+      summary: Get the current authenticated user
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Current user }
+        '401': { description: Missing or invalid token }
+
+  /accounts:
+    get:
+      summary: List the current user's accounts
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Array of accounts }
+
+  /accounts/{id}:
+    get:
+      summary: Get a single account by id
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Account }
+        '404': { description: Not found / not owned by current user }
+
+  /accounts/{id}/transactions:
+    get:
+      summary: List transactions for an account (search/date filter/pagination)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: from
+          in: query
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          schema: { type: string, format: date }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: pageSize
+          in: query
+          schema: { type: integer, default: 5 }
+      responses:
+        '200': { description: Paginated transaction list }
+
+  /transfers:
+    post:
+      summary: Transfer funds from one of the user's accounts to any account by account number
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fromAccountId, toAccountNumber, amount]
+              properties:
+                fromAccountId: { type: integer }
+                toAccountNumber: { type: string }
+                amount: { type: number }
+                memo: { type: string }
+      responses:
+        '201': { description: Transfer completed }
+        '400': { description: Validation error (missing fields, non-positive amount) }
+        '404': { description: Source or destination account not found }
+        '422': { description: Insufficient funds }
+
+  /payees:
+    get:
+      summary: List the current user's bill-pay payees
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Array of payees }
+    post:
+      summary: Add a payee
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, accountNumber]
+              properties:
+                name: { type: string }
+                accountNumber: { type: string }
+                category: { type: string }
+      responses:
+        '201': { description: Payee created }
+
+  /payees/{id}:
+    delete:
+      summary: Remove a payee
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '204': { description: Deleted }
+        '404': { description: Not found }
+
+  /payees/{id}/pay:
+    post:
+      summary: Pay a bill from one of the user's accounts
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fromAccountId, amount]
+              properties:
+                fromAccountId: { type: integer }
+                amount: { type: number }
+                memo: { type: string }
+      responses:
+        '201': { description: Payment completed }
+        '400': { description: Validation error }
+        '404': { description: Payee or source account not found }
+        '422': { description: Insufficient funds }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
