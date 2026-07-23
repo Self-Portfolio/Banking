@@ -1,5 +1,4 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import NavBar from './components/NavBar.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import GuestRoute from './components/GuestRoute.jsx';
 import Login from './pages/Login.jsx';
@@ -13,7 +12,6 @@ import Profile from './pages/Profile.jsx';
 export default function App() {
   return (
     <>
-      <NavBar />
       <Routes>
         <Route
           path="/login"

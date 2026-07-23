@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
+import { Receipt, Trash2, Plus, CheckCircle2 } from 'lucide-react';
 import { api } from '../api';
 
 const currency = (n) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+
+const PAYEE_COLORS = ['#1b998b', '#0b2545', '#e8a33d', '#5b7fb5', '#8e6bbf', '#c0392b'];
+const payeeColor = (name) => PAYEE_COLORS[name.charCodeAt(0) % PAYEE_COLORS.length];
 
 export default function BillPay() {
   const [accounts, setAccounts] = useState([]);
@@ -87,13 +91,15 @@ export default function BillPay() {
       )}
       {success && (
         <div className="alert alert-success" data-testid="billpay-success">
-          {success}
+          <CheckCircle2 size={16} /> {success}
         </div>
       )}
 
       <div className="two-column">
         <form className="card-form" onSubmit={handlePay} data-testid="billpay-form">
-          <h2>Pay a Bill</h2>
+          <h2>
+            <Receipt size={18} /> Pay a Bill
+          </h2>
 
           <label htmlFor="billFromAccount">From Account</label>
           <select
@@ -147,11 +153,16 @@ export default function BillPay() {
           <ul className="payee-list">
             {payees.map((p) => (
               <li key={p.id} data-testid={`payee-row-${p.id}`}>
-                <span>
-                  <strong>{p.name}</strong> <span className="muted">({p.category})</span>
+                <span className="payee-info">
+                  <span className="payee-avatar" style={{ background: payeeColor(p.name) }}>
+                    {p.name[0].toUpperCase()}
+                  </span>
+                  <span>
+                    <strong>{p.name}</strong> <span className="muted">({p.category})</span>
+                  </span>
                 </span>
-                <button onClick={() => handleDeletePayee(p.id)} data-testid={`payee-delete-${p.id}`}>
-                  Remove
+                <button onClick={() => handleDeletePayee(p.id)} className="icon-button-danger" data-testid={`payee-delete-${p.id}`}>
+                  <Trash2 size={15} />
                 </button>
               </li>
             ))}
@@ -159,8 +170,8 @@ export default function BillPay() {
           </ul>
 
           {!showAddPayee && (
-            <button onClick={() => setShowAddPayee(true)} data-testid="show-add-payee">
-              + Add Payee
+            <button onClick={() => setShowAddPayee(true)} className="btn-outline" data-testid="show-add-payee">
+              <Plus size={15} /> Add Payee
             </button>
           )}
 

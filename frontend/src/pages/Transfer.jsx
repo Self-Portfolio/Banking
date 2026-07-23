@@ -1,7 +1,28 @@
 import { useEffect, useState } from 'react';
+import { CheckCircle2, ArrowLeftRight } from 'lucide-react';
 import { api } from '../api';
 
 const currency = (n) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+
+const STEPS = [
+  { key: 'form', label: 'Details' },
+  { key: 'review', label: 'Review' },
+  { key: 'success', label: 'Done' }
+];
+
+function StepIndicator({ current }) {
+  const currentIndex = STEPS.findIndex((s) => s.key === current);
+  return (
+    <ol className="step-indicator" data-testid="transfer-step-indicator">
+      {STEPS.map((s, idx) => (
+        <li key={s.key} className={idx <= currentIndex ? 'step-active' : ''}>
+          <span className="step-dot">{idx + 1}</span>
+          <span>{s.label}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
 
 export default function Transfer() {
   const [accounts, setAccounts] = useState([]);
@@ -75,6 +96,7 @@ export default function Transfer() {
   return (
     <div className="page" data-testid="transfer-page">
       <h1>Transfer Funds</h1>
+      <StepIndicator current={step} />
 
       {step === 'form' && (
         <form className="card-form" onSubmit={handleReview} data-testid="transfer-form">
@@ -132,7 +154,9 @@ export default function Transfer() {
 
       {step === 'review' && (
         <div className="card-form" data-testid="transfer-review">
-          <h2>Review Transfer</h2>
+          <h2>
+            <ArrowLeftRight size={18} /> Review Transfer
+          </h2>
           <dl className="review-list">
             <dt>From</dt>
             <dd data-testid="review-from">{selectedAccount?.nickname}</dd>
@@ -161,7 +185,7 @@ export default function Transfer() {
       {step === 'success' && result && (
         <div className="card-form" data-testid="transfer-success">
           <div className="alert alert-success" data-testid="transfer-success-message">
-            Transfer of {currency(result.transfer.amount)} completed successfully.
+            <CheckCircle2 size={16} /> Transfer of {currency(result.transfer.amount)} completed successfully.
           </div>
           <p>
             New balance on {selectedAccount?.nickname}: <strong data-testid="transfer-new-balance">{currency(result.fromAccount.balance)}</strong>

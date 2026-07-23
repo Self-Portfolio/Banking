@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import AppShell from './AppShell.jsx';
 
 export default function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -10,5 +11,5 @@ export default function ProtectedRoute({ children }) {
   if (!user) {
     return <Navigate to="/login" replace />;
   }
-  return children;
+  return <AppShell>{children}</AppShell>;
 }

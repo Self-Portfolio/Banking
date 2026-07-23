@@ -1,9 +1,38 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import {
+  ArrowLeft,
+  Search,
+  ShoppingCart,
+  Home,
+  Zap,
+  Coffee,
+  Car,
+  ShoppingBag,
+  Film,
+  Repeat,
+  Landmark,
+  Receipt,
+  CircleDollarSign
+} from 'lucide-react';
 import { api } from '../api';
 
 const currency = (n) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 const formatDate = (iso) => new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+const CATEGORY_ICON = {
+  Income: Landmark,
+  Housing: Home,
+  Groceries: ShoppingCart,
+  Utilities: Zap,
+  Dining: Coffee,
+  Transfer: Repeat,
+  Transportation: Car,
+  Shopping: ShoppingBag,
+  Entertainment: Film,
+  'Bill Pay': Receipt,
+  Interest: CircleDollarSign
+};
 
 export default function AccountDetails() {
   const { id } = useParams();
@@ -38,11 +67,14 @@ export default function AccountDetails() {
 
   return (
     <div className="page" data-testid="account-details-page">
-      <Link to="/dashboard" data-testid="back-to-dashboard">&larr; Back to Accounts</Link>
+      <Link to="/dashboard" className="back-link" data-testid="back-to-dashboard">
+        <ArrowLeft size={15} /> Back to Accounts
+      </Link>
 
       {account && (
         <div className="page-header">
           <div>
+            <p className="eyebrow">{account.type === 'checking' ? 'Checking' : 'Savings'}</p>
             <h1>{account.nickname}</h1>
             <p className="muted">Account •••• {account.accountNumber.slice(-4)}</p>
           </div>
@@ -54,12 +86,15 @@ export default function AccountDetails() {
       )}
 
       <div className="filters">
-        <input
-          placeholder="Search transactions..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          data-testid="transaction-search"
-        />
+        <div className="search-input">
+          <Search size={16} />
+          <input
+            placeholder="Search transactions..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            data-testid="transaction-search"
+          />
+        </div>
         <label>
           From
           <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} data-testid="transaction-from" />
@@ -81,18 +116,25 @@ export default function AccountDetails() {
           </tr>
         </thead>
         <tbody>
-          {txData.transactions.map((t) => (
-            <tr key={t.id} data-testid={`transaction-row-${t.id}`}>
-              <td>{formatDate(t.date)}</td>
-              <td>{t.description}</td>
-              <td>{t.category}</td>
-              <td className={t.amount < 0 ? 'amount-debit' : 'amount-credit'}>
-                {t.amount < 0 ? '-' : '+'}
-                {currency(Math.abs(t.amount))}
-              </td>
-              <td>{currency(t.balanceAfter)}</td>
-            </tr>
-          ))}
+          {txData.transactions.map((t) => {
+            const Icon = CATEGORY_ICON[t.category] || CircleDollarSign;
+            return (
+              <tr key={t.id} data-testid={`transaction-row-${t.id}`}>
+                <td>{formatDate(t.date)}</td>
+                <td>{t.description}</td>
+                <td>
+                  <span className="category-badge">
+                    <Icon size={13} /> {t.category}
+                  </span>
+                </td>
+                <td className={t.amount < 0 ? 'amount-debit' : 'amount-credit'}>
+                  {t.amount < 0 ? '-' : '+'}
+                  {currency(Math.abs(t.amount))}
+                </td>
+                <td>{currency(t.balanceAfter)}</td>
+              </tr>
+            );
+          })}
           {!loading && txData.transactions.length === 0 && (
             <tr>
               <td colSpan={5} data-testid="no-transactions">
