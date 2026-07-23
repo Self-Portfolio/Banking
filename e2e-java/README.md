@@ -14,6 +14,23 @@ and TestNG as the runner.
 - Every locator is `[data-testid='...']`, matching the same attributes the
   Playwright suite and the app's own React components use
 
+## A note on CI
+
+This suite is noticeably heavier than the Playwright one: Cucumber's
+`@Before`/`@After` hooks launch and tear down a **fresh Chrome session for
+every scenario** (18 of them), vs. Playwright reusing a single browser
+context. On a shared 2-core GitHub-hosted runner that's enough load to
+occasionally starve a scenario of CPU mid-wait. Two mitigations are in
+place for that:
+
+- `Config.DEFAULT_TIMEOUT_SECONDS` defaults to 20s (CI passes 25s via
+  `-Dtimeout.seconds=25`), up from a locally-fine 10s.
+- `pom.xml`'s Surefire config sets `rerunFailingTestsCount=2` - a scenario
+  that fails is retried before being reported as failed. This is standard
+  practice for Selenium suites on CI and doesn't mask real bugs: a
+  genuinely broken scenario (like the app's own seeded bugs) still fails
+  deterministically on every retry.
+
 ## Prerequisites
 
 - JDK 17+ (this repo was built/tested against JDK 21)

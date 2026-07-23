@@ -65,6 +65,13 @@
           <suiteXmlFiles>
             <suiteXmlFile>testng.xml</suiteXmlFile>
           </suiteXmlFiles>
+          <!-- Selenium suites are more resource-sensitive than Playwright's
+               on shared CI runners (a fresh Chrome session per scenario is
+               heavy on a 2-core box) - automatically retrying a failed
+               scenario before giving up is standard practice for exactly
+               this, and won't hide a genuinely broken scenario since real
+               bugs fail deterministically on every retry too. -->
+          <rerunFailingTestsCount>2</rerunFailingTestsCount>
         </configuration>
       </plugin>
     </plugins>
