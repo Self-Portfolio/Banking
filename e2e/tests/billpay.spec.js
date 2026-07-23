@@ -38,11 +38,22 @@ test('adds a new payee and it appears in the payee list', async ({ page }) => {
   await expect(page.getByTestId('payee-list')).toContainText('Internet Provider');
 });
 
+function isDeletePayeeResponse(res) {
+  return /\/api\/payees\/\d+$/.test(res.url()) && res.request().method() === 'DELETE';
+}
+
 test('removes an existing payee from the list', async ({ page }) => {
   await expect(page.getByTestId('payee-list')).toContainText('Acme Credit Card');
 
   const row = page.locator('[data-testid^="payee-row-"]', { hasText: 'Acme Credit Card' });
-  await row.locator('button').click();
+  // Wait on the actual DELETE response rather than only polling the DOM, so
+  // a server-side failure surfaces as a clear assertion instead of a vague
+  // "text never changed" timeout.
+  const [response] = await Promise.all([
+    page.waitForResponse(isDeletePayeeResponse),
+    row.locator('button').click()
+  ]);
+  expect(response.ok()).toBeTruthy();
 
   await expect(page.getByTestId('payee-list')).not.toContainText('Acme Credit Card');
 });
@@ -50,7 +61,11 @@ test('removes an existing payee from the list', async ({ page }) => {
 test('the payment button is disabled when there are no payees', async ({ page }) => {
   for (const name of ['Electric Company', 'City Water Utility', 'Acme Credit Card']) {
     const row = page.locator('[data-testid^="payee-row-"]', { hasText: name });
-    await row.locator('button').click();
+    const [response] = await Promise.all([
+      page.waitForResponse(isDeletePayeeResponse),
+      row.locator('button').click()
+    ]);
+    expect(response.ok()).toBeTruthy();
     await expect(row).toHaveCount(0);
   }
 

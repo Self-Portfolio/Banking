@@ -76,8 +76,13 @@ export default function BillPay() {
   };
 
   const handleDeletePayee = async (id) => {
-    await api.deletePayee(id);
-    loadAll();
+    setError('');
+    try {
+      await api.deletePayee(id);
+      loadAll();
+    } catch (err) {
+      setError(err.message || 'Could not remove payee');
+    }
   };
 
   return (
